@@ -324,7 +324,14 @@ function prepararVoz() {
 
 function decirNumero(numero) {
     if (!vozActivada) return;
-    if (!("speechSynthesis" in window)) return;
+
+    if (!("speechSynthesis" in window)) {
+        console.log("Speech Synthesis no está disponible");
+        return;
+    }
+
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
 
     const mensaje = new SpeechSynthesisUtterance(
         numeroEnTexto(numero)
@@ -335,11 +342,8 @@ function decirNumero(numero) {
     mensaje.pitch = 1;
     mensaje.volume = 1;
 
-    speechSynthesis.cancel();
-    speechSynthesis.resume();
     speechSynthesis.speak(mensaje);
 }
-
 
 /* =========================
    PAUSAR / CONTINUAR
