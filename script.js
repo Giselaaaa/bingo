@@ -521,40 +521,26 @@ crearTablero();
    PANTALLA DE INICIO
 ========================= */
 
-document
-    .getElementById("empezar")
-    .addEventListener(
-        "click",
-        function () {
+document.getElementById("empezar").addEventListener("click", () => {
 
-            const pantallaInicio =
-                document.getElementById(
-                    "pantallaInicio"
-                );
+    // Activar el sistema de voz de iPhone
+    if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+        speechSynthesis.resume();
 
-            const juego =
-                document.getElementById(
-                    "juego"
-                );
+        const vozInicial = new SpeechSynthesisUtterance(" ");
+        vozInicial.lang = "es-ES";
+        vozInicial.volume = 0;
 
-            pantallaInicio.classList.add(
-                "oculto"
-            );
+        speechSynthesis.speak(vozInicial);
+    }
 
-            juego.classList.remove(
-                "oculto"
-            );
+    pantallaInicio.classList.add("oculto");
+    juego.classList.remove("oculto");
+    juego.classList.add("entradaJuego");
 
-            juego.classList.add(
-                "entradaJuego"
-            );
-
-            prepararVoz();
-           
-            iniciarBingo();
-
-        }
-    );
+    iniciarBingo();
+});
 
 /* =========================
    BOTÓN DE VOZ
