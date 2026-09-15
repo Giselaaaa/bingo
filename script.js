@@ -324,21 +324,16 @@ function prepararVoz() {
 
 function decirNumero(numero) {
     if (!vozActivada) return;
+    if (!("speechSynthesis" in window)) return;
 
-    if (!("speechSynthesis" in window)) {
-        console.log("Speech Synthesis no está disponible");
-        return;
-    }
+    const texto = numeroEnTexto(numero);
 
     speechSynthesis.cancel();
-    speechSynthesis.resume();
 
-    const mensaje = new SpeechSynthesisUtterance(
-        numeroEnTexto(numero)
-    );
+    const mensaje = new SpeechSynthesisUtterance(texto);
 
     mensaje.lang = "es-ES";
-    mensaje.rate = 0.85;
+    mensaje.rate = 0.8;
     mensaje.pitch = 1;
     mensaje.volume = 1;
 
@@ -499,16 +494,17 @@ function finalizarBingo() {
 ========================= */
 
 function iniciarBingo() {
+    crearNumeros();
 
-    clearTimeout(
-        temporizador
-    );
+    sacarNumero();
 
-    temporizador =
-        setTimeout(
-            sacarNumero,
-            tiempoEntreNumeros
-        );
+    clearInterval(temporizador);
+
+    temporizador = setInterval(() => {
+        if (!pausado) {
+            sacarNumero();
+        }
+    }, tiempoEntreNumeros);
 }
 
 
@@ -527,21 +523,21 @@ crearTablero();
 
 document.getElementById("empezar").addEventListener("click", () => {
 
-    // Activar el sistema de voz de iPhone
-    if ("speechSynthesis" in window) {
-        speechSynthesis.cancel();
-        speechSynthesis.resume();
-
-        const vozInicial = new SpeechSynthesisUtterance(" ");
-        vozInicial.lang = "es-ES";
-        vozInicial.volume = 0;
-
-        speechSynthesis.speak(vozInicial);
-    }
-
     pantallaInicio.classList.add("oculto");
     juego.classList.remove("oculto");
     juego.classList.add("entradaJuego");
+
+    // Activar la voz directamente desde el toque del usuario
+    if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+
+        const mensajeInicial = new SpeechSynthesisUtterance("Bingo");
+        mensajeInicial.lang = "es-ES";
+        mensajeInicial.rate = 0.8;
+        mensajeInicial.volume = 0;
+
+        speechSynthesis.speak(mensajeInicial);
+    }
 
     iniciarBingo();
 });
