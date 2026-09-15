@@ -309,25 +309,34 @@ function añadirUltimoNumero(numero) {
 
 let vozActivada = true;
 
-function decirNumero(numero) {
-
-    if (!vozActivada) {
-        return;
-    }
-
-    const mensaje =
-        new SpeechSynthesisUtterance(
-            numeroEnTexto(numero)
-        );
-
-    mensaje.lang = "es-ES";
-
-    mensaje.rate = 0.85;
-
-    mensaje.pitch = 1;
+function prepararVoz() {
+    if (!("speechSynthesis" in window)) return;
 
     speechSynthesis.cancel();
+    speechSynthesis.resume();
 
+    const prueba = new SpeechSynthesisUtterance(" ");
+    prueba.lang = "es-ES";
+    prueba.volume = 0;
+
+    speechSynthesis.speak(prueba);
+}
+
+function decirNumero(numero) {
+    if (!vozActivada) return;
+    if (!("speechSynthesis" in window)) return;
+
+    const mensaje = new SpeechSynthesisUtterance(
+        numeroEnTexto(numero)
+    );
+
+    mensaje.lang = "es-ES";
+    mensaje.rate = 0.85;
+    mensaje.pitch = 1;
+    mensaje.volume = 1;
+
+    speechSynthesis.cancel();
+    speechSynthesis.resume();
     speechSynthesis.speak(mensaje);
 }
 
@@ -540,6 +549,8 @@ document
                 "entradaJuego"
             );
 
+            prepararVoz();
+           
             iniciarBingo();
 
         }
