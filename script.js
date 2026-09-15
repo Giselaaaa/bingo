@@ -161,6 +161,10 @@ function sacarNumero() {
     );
 
     animarBola(numero);
+   
+    if (numerosDisponibles.length === 0) {
+        finalizarBingo();
+        return;
 }
 
 
@@ -377,7 +381,18 @@ document
         }
     );
 
+pausar.addEventListener("click", () => {
+    pausado = !pausado;
 
+    if (pausado) {
+        clearTimeout(temporizador);
+        pausar.textContent = "Continuar";
+    } else {
+        pausar.textContent = "Pausar";
+        programarSiguienteNumero();
+    }
+});
+   
 /* =========================
    REINICIAR
 ========================= */
@@ -430,7 +445,17 @@ document
         }
     );
 
+reiniciar.addEventListener("click", () => {
+    clearTimeout(temporizador);
 
+    speechSynthesis.cancel();
+
+    pausado = false;
+
+    crearNumeros();
+    iniciarBingo();
+});
+   
 /* =========================
    VELOCIDAD
 ========================= */
@@ -494,19 +519,28 @@ function finalizarBingo() {
 ========================= */
 
 function iniciarBingo() {
+    clearTimeout(temporizador);
+
     crearNumeros();
+    pausado = false;
 
     sacarNumero();
 
-    clearInterval(temporizador);
+    programarSiguienteNumero();
+}
 
-    temporizador = setInterval(() => {
+function programarSiguienteNumero() {
+    clearTimeout(temporizador);
+
+    if (pausado) return;
+
+    temporizador = setTimeout(() => {
         if (!pausado) {
             sacarNumero();
+            programarSiguienteNumero();
         }
     }, tiempoEntreNumeros);
 }
-
 
 /* =========================
    ARRANCAR APP
