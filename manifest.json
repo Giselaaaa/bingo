@@ -1,0 +1,10 @@
+{
+    "name": "Bingo",
+    "short_name": "Bingo",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#F7F1E8",
+    "theme_color": "#F7F1E8",
+    "orientation": "portrait",
+    "icons": []
+}

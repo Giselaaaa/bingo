@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#F7F1E8"
+    >
+
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <title>Bingo</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<script src="script.js"></script>
+
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register(
+                "service-worker.js"
+            );
+        });
+    }
+</script>
+
+<body>
+
+    <!-- =========================
+         PANTALLA DE INICIO
+    ========================== -->
+
+    <section id="pantallaInicio" class="pantallaInicio">
+
+        <div class="inicioContenido">
+
+        
+            <h1>BINGO</h1>
+
+            <p class="subtituloInicio">
+                El bingo de siempre,<br>
+                ahora en tu móvil.
+            </p>
+
+            <div class="bolaDecorativa">
+                <span>🎱</span>
+            </div>
+
+            <button
+                id="empezar"
+                class="botonEmpezar"
+            >
+                EMPEZAR BINGO
+            </button>
+
+            <p class="textoInicio">
+                90 números · Voz en español
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         JUEGO
+    ========================== -->
+
+    <main
+        id="juego"
+        class="app oculto"
+    >
+
+        <header class="cabecera">
+
+            <button
+                id="volverInicio"
+                class="botonIcono"
+                aria-label="Volver al inicio"
+        >
+            ←
+        </button>
+
+        <div class="marca">
+
+            <div class="logo">
+                🎱
+            </div>
+
+            <div>
+                <h1>BINGO</h1>
+
+                <span>
+                    1 — 90
+                </span>
+            </div>
+
+        </div>
+
+            <button
+            id="voz"
+            class="botonIcono"
+            aria-label="Activar o desactivar voz"
+        >
+            🔊
+        </button>
+
+    </header>
+
+
+        <!-- NÚMERO ACTUAL -->
+
+        <section class="numeroSeccion">
+
+            <p class="tituloSeccion">
+                NÚMERO ACTUAL
+            </p>
+
+            <div
+                id="numeroActual"
+                class="bola"
+            >
+                --
+            </div>
+
+            <div
+                id="numeroTexto"
+                class="numeroTexto"
+            ></div>
+
+        </section>
+
+
+        <!-- ÚLTIMOS NÚMEROS -->
+
+        <section class="ultimos">
+
+            <div class="tituloFila">
+
+                <span>
+                    ÚLTIMOS NÚMEROS
+                </span>
+
+                <span id="contador">
+                    Quedan 90 números
+                </span>
+
+            </div>
+
+            <div
+                id="listaUltimosNumeros"
+                class="listaUltimos"
+            ></div>
+
+        </section>
+
+
+        <!-- CONTROLES -->
+
+        <section class="panelControl">
+
+            <div class="velocidadBox">
+
+                <span>
+                    ⏱️ Velocidad
+                </span>
+
+                <select id="velocidad">
+
+                    <option value="3000">
+                        3 segundos
+                    </option>
+
+                    <option
+                        value="5000"
+                        selected
+                    >
+                        5 segundos
+                    </option>
+
+                    <option value="10000">
+                        10 segundos
+                    </option>
+
+                    <option value="15000">
+                        15 segundos
+                    </option>
+
+                    <option value="30000">
+                        30 segundos
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="botones">
+
+                <button
+                    id="pausar"
+                    class="boton pausa"
+                >
+                    ⏸️ PAUSAR
+                </button>
+
+                <button
+                    id="reiniciar"
+                    class="boton reiniciar"
+                >
+                    🔄 REINICIAR
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- TABLERO -->
+
+        <section class="tableroSeccion">
+
+            <div class="tituloTablero">
+
+                <span>
+                    TABLERO
+                </span>
+
+                <span>
+                    90 NÚMEROS
+                </span>
+
+            </div>
+
+            <div
+                id="tablero"
+                class="tablero"
+            ></div>
+
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
