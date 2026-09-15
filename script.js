@@ -1,10 +1,15 @@
+```javascript
 let numerosDisponibles = [];
 
 let pausado = false;
+let jugando = false;
 
 let tiempoEntreNumeros = 5000;
 
-let temporizador;
+let temporizador = null;
+let intervaloAnimacion = null;
+
+let vozActivada = true;
 
 
 /* =========================
@@ -27,7 +32,6 @@ function numeroEnTexto(numero) {
     ];
 
     const especiales = {
-
         10: "diez",
         11: "once",
         12: "doce",
@@ -49,11 +53,9 @@ function numeroEnTexto(numero) {
         27: "veintisiete",
         28: "veintiocho",
         29: "veintinueve"
-
     };
 
     const decenas = {
-
         30: "treinta",
         40: "cuarenta",
         50: "cincuenta",
@@ -61,7 +63,6 @@ function numeroEnTexto(numero) {
         70: "setenta",
         80: "ochenta",
         90: "noventa"
-
     };
 
     if (numero < 10) {
@@ -72,11 +73,8 @@ function numeroEnTexto(numero) {
         return especiales[numero];
     }
 
-    const decena =
-        Math.floor(numero / 10) * 10;
-
-    const unidad =
-        numero % 10;
+    const decena = Math.floor(numero / 10) * 10;
+    const unidad = numero % 10;
 
     if (unidad === 0) {
         return decenas[decena];
@@ -95,9 +93,7 @@ function crearNumeros() {
     numerosDisponibles = [];
 
     for (let i = 1; i <= 90; i++) {
-
         numerosDisponibles.push(i);
-
     }
 }
 
@@ -108,23 +104,20 @@ function crearNumeros() {
 
 function crearTablero() {
 
-    const tablero =
-        document.getElementById("tablero");
+    const tablero = document.getElementById("tablero");
+
+    if (!tablero) return;
 
     tablero.innerHTML = "";
 
     for (let i = 1; i <= 90; i++) {
 
-        const numero =
-            document.createElement("div");
+        const numero = document.createElement("div");
 
         numero.textContent = i;
-
-        numero.id =
-            `numero-${i}`;
+        numero.id = `numero-${i}`;
 
         tablero.appendChild(numero);
-
     }
 }
 
@@ -135,53 +128,48 @@ function crearTablero() {
 
 function sacarNumero() {
 
-    if (pausado) {
+    if (!jugando || pausado) {
         return;
     }
 
     if (numerosDisponibles.length === 0) {
-
         finalizarBingo();
-
         return;
     }
 
-    const posicion =
-        Math.floor(
-            Math.random() *
-            numerosDisponibles.length
-        );
-
-    const numero =
-        numerosDisponibles[posicion];
-
-    numerosDisponibles.splice(
-        posicion,
-        1
+    // Elegir número aleatorio
+    const posicion = Math.floor(
+        Math.random() * numerosDisponibles.length
     );
 
+    const numero = numerosDisponibles.splice(
+        posicion,
+        1
+    )[0];
+
+    // Animar y anunciar
     animarBola(numero);
-   
-    if (numerosDisponibles.length === 0) {
-        finalizarBingo();
-        return;
 }
 
 
 /* =========================
-   ANIMACIÓN
+   ANIMACIÓN DE LA BOLA
 ========================= */
 
 function animarBola(numeroFinal) {
 
-    const bola =
-        document.getElementById("numeroActual");
+    const bola = document.getElementById("numeroActual");
+    const texto = document.getElementById("numeroTexto");
 
-    const texto =
-        document.getElementById("numeroTexto");
+    if (!bola || !texto) return;
+
+    // Cancelar cualquier animación anterior
+    if (intervaloAnimacion !== null) {
+        clearInterval(intervaloAnimacion);
+        intervaloAnimacion = null;
+    }
 
     bola.classList.remove("animando");
-
     bola.classList.remove("girando");
 
     void bola.offsetWidth;
@@ -192,64 +180,90 @@ function animarBola(numeroFinal) {
 
     const maxCambios = 12;
 
-    const intervalo =
-        setInterval(function () {
+    intervaloAnimacion = setInterval(() => {
 
-            const numeroAleatorio =
-                Math.floor(
-                    Math.random() * 90
-                ) + 1;
+        // Si hemos pausado, detener la animación
+        if (pausado || !jugando) {
+            clearInterval(intervaloAnimacion);
+            intervaloAnimacion = null;
+            return;
+        }
 
-            bola.textContent =
-                numeroAleatorio;
+        const numeroAleatorio =
+            Math.floor(Math.random() * 90) + 1;
 
-            cambios++;
+        bola.textContent = numeroAleatorio;
 
-            if (cambios >= maxCambios) {
+        cambios++;
 
-                clearInterval(intervalo);
+        if (cambios >= maxCambios) {
 
-                bola.textContent =
-                    numeroFinal;
+            clearInterval(intervaloAnimacion);
+            intervaloAnimacion = null;
 
-                texto.textContent =
-                    numeroEnTexto(
-                        numeroFinal
-                    ).toUpperCase();
+            bola.textContent = numeroFinal;
 
-                bola.classList.remove(
-                    "girando"
-                );
+            texto.textContent =
+                numeroEnTexto(numeroFinal).toUpperCase();
 
-                bola.classList.add(
-                    "animando"
-                );
+            bola.classList.remove("girando");
+            bola.classList.add("animando");
 
-                marcarNumero(
-                    numeroFinal
-                );
+            marcarNumero(numeroFinal);
 
-                añadirUltimoNumero(
-                    numeroFinal
-                );
+            añadirUltimoNumero(numeroFinal);
 
-                document
-                    .getElementById("contador")
-                    .textContent =
+            const contador =
+                document.getElementById("contador");
+
+            if (contador) {
+                contador.textContent =
                     `Quedan ${numerosDisponibles.length} números`;
-
-                decirNumero(
-                    numeroFinal
-                );
-
-                temporizador =
-                    setTimeout(
-                        sacarNumero,
-                        tiempoEntreNumeros
-                    );
             }
 
-        }, 80);
+            // Decir el número
+            decirNumero(numeroFinal);
+
+            // PROGRAMAR SOLO AQUÍ EL SIGUIENTE
+            programarSiguienteNumero();
+        }
+
+    }, 80);
+}
+
+
+/* =========================
+   PROGRAMAR SIGUIENTE NÚMERO
+========================= */
+
+function programarSiguienteNumero() {
+
+    // Cancelar cualquier temporizador anterior
+    if (temporizador !== null) {
+        clearTimeout(temporizador);
+        temporizador = null;
+    }
+
+    if (!jugando || pausado) {
+        return;
+    }
+
+    if (numerosDisponibles.length === 0) {
+        finalizarBingo();
+        return;
+    }
+
+    temporizador = setTimeout(() => {
+
+        temporizador = null;
+
+        if (!jugando || pausado) {
+            return;
+        }
+
+        sacarNumero();
+
+    }, tiempoEntreNumeros);
 }
 
 
@@ -260,16 +274,10 @@ function animarBola(numeroFinal) {
 function marcarNumero(numero) {
 
     const elemento =
-        document.getElementById(
-            `numero-${numero}`
-        );
+        document.getElementById(`numero-${numero}`);
 
     if (elemento) {
-
-        elemento.classList.add(
-            "salido"
-        );
-
+        elemento.classList.add("salido");
     }
 }
 
@@ -281,19 +289,16 @@ function marcarNumero(numero) {
 function añadirUltimoNumero(numero) {
 
     const lista =
-        document.getElementById(
-            "listaUltimosNumeros"
-        );
+        document.getElementById("listaUltimosNumeros");
+
+    if (!lista) return;
 
     const elemento =
         document.createElement("div");
 
-    elemento.classList.add(
-        "ultimoNumero"
-    );
+    elemento.classList.add("ultimoNumero");
 
-    elemento.textContent =
-        numero;
+    elemento.textContent = numero;
 
     lista.prepend(elemento);
 
@@ -302,7 +307,6 @@ function añadirUltimoNumero(numero) {
         lista.removeChild(
             lista.lastChild
         );
-
     }
 }
 
@@ -311,30 +315,42 @@ function añadirUltimoNumero(numero) {
    VOZ
 ========================= */
 
-let vozActivada = true;
-
 function prepararVoz() {
-    if (!("speechSynthesis" in window)) return;
+
+    if (!("speechSynthesis" in window)) {
+        return;
+    }
 
     speechSynthesis.cancel();
     speechSynthesis.resume();
 
-    const prueba = new SpeechSynthesisUtterance(" ");
+    const prueba =
+        new SpeechSynthesisUtterance(" ");
+
     prueba.lang = "es-ES";
     prueba.volume = 0;
 
     speechSynthesis.speak(prueba);
 }
 
-function decirNumero(numero) {
-    if (!vozActivada) return;
-    if (!("speechSynthesis" in window)) return;
 
-    const texto = numeroEnTexto(numero);
+function decirNumero(numero) {
+
+    if (!vozActivada) {
+        return;
+    }
+
+    if (!("speechSynthesis" in window)) {
+        return;
+    }
 
     speechSynthesis.cancel();
+    speechSynthesis.resume();
 
-    const mensaje = new SpeechSynthesisUtterance(texto);
+    const mensaje =
+        new SpeechSynthesisUtterance(
+            numeroEnTexto(numero)
+        );
 
     mensaje.lang = "es-ES";
     mensaje.rate = 0.8;
@@ -344,168 +360,151 @@ function decirNumero(numero) {
     speechSynthesis.speak(mensaje);
 }
 
+
 /* =========================
    PAUSAR / CONTINUAR
 ========================= */
 
 document
     .getElementById("pausar")
-    .addEventListener(
-        "click",
-        function () {
+    .addEventListener("click", function () {
 
-            pausado = !pausado;
+        if (!jugando) {
+            return;
+        }
 
-            if (pausado) {
+        pausado = !pausado;
 
-                clearTimeout(
-                    temporizador
-                );
+        if (pausado) {
 
-                this.textContent =
-                    "▶️ CONTINUAR";
+            // Cancelar siguiente número
+            clearTimeout(temporizador);
+            temporizador = null;
 
-            } else {
-
-                this.textContent =
-                    "⏸️ PAUSAR";
-
-                temporizador =
-                    setTimeout(
-                        sacarNumero,
-                        tiempoEntreNumeros
-                    );
-
+            // Detener animación
+            if (intervaloAnimacion !== null) {
+                clearInterval(intervaloAnimacion);
+                intervaloAnimacion = null;
             }
 
+            this.textContent =
+                "▶️ CONTINUAR";
+
+        } else {
+
+            this.textContent =
+                "⏸️ PAUSAR";
+
+            // Continuar con un único temporizador
+            programarSiguienteNumero();
         }
-    );
 
-pausar.addEventListener("click", () => {
-    pausado = !pausado;
+    });
 
-    if (pausado) {
-        clearTimeout(temporizador);
-        pausar.textContent = "Continuar";
-    } else {
-        pausar.textContent = "Pausar";
-        programarSiguienteNumero();
-    }
-});
-   
+
 /* =========================
    REINICIAR
 ========================= */
 
 document
     .getElementById("reiniciar")
-    .addEventListener(
-        "click",
-        function () {
+    .addEventListener("click", function () {
 
-            clearTimeout(
-                temporizador
-            );
+        // Cancelar absolutamente todo
+        clearTimeout(temporizador);
+        temporizador = null;
 
-            pausado = false;
-
-            document
-                .getElementById("pausar")
-                .textContent =
-                "⏸️ PAUSAR";
-
-            crearNumeros();
-
-            crearTablero();
-
-            document
-                .getElementById("numeroActual")
-                .textContent =
-                "--";
-
-            document
-                .getElementById("numeroTexto")
-                .textContent =
-                "";
-
-            document
-                .getElementById(
-                    "listaUltimosNumeros"
-                )
-                .innerHTML =
-                "";
-
-            document
-                .getElementById("contador")
-                .textContent =
-                "Quedan 90 números";
-
-            iniciarBingo();
-
+        if (intervaloAnimacion !== null) {
+            clearInterval(intervaloAnimacion);
+            intervaloAnimacion = null;
         }
-    );
 
-reiniciar.addEventListener("click", () => {
-    clearTimeout(temporizador);
+        speechSynthesis.cancel();
 
-    speechSynthesis.cancel();
+        pausado = false;
+        jugando = true;
 
-    pausado = false;
+        this.blur();
 
-    crearNumeros();
-    iniciarBingo();
-});
-   
+        document
+            .getElementById("pausar")
+            .textContent = "⏸️ PAUSAR";
+
+        crearNumeros();
+
+        crearTablero();
+
+        document
+            .getElementById("numeroActual")
+            .textContent = "--";
+
+        document
+            .getElementById("numeroTexto")
+            .textContent = "";
+
+        document
+            .getElementById("listaUltimosNumeros")
+            .innerHTML = "";
+
+        document
+            .getElementById("contador")
+            .textContent =
+            "Quedan 90 números";
+
+        // Sacar el primer número inmediatamente
+        sacarNumero();
+    });
+
+
 /* =========================
    VELOCIDAD
 ========================= */
 
 document
     .getElementById("velocidad")
-    .addEventListener(
-        "change",
-        function () {
+    .addEventListener("change", function () {
 
-            tiempoEntreNumeros =
-                Number(this.value);
+        tiempoEntreNumeros =
+            Number(this.value);
 
-            if (!pausado) {
+        // Si estamos jugando, reiniciamos
+        // SOLO el temporizador.
+        if (jugando && !pausado) {
 
-                clearTimeout(
-                    temporizador
-                );
+            clearTimeout(temporizador);
+            temporizador = null;
 
-                temporizador =
-                    setTimeout(
-                        sacarNumero,
-                        tiempoEntreNumeros
-                    );
-
-            }
-
+            programarSiguienteNumero();
         }
-    );
+
+    });
 
 
 /* =========================
-   FINAL
+   FINAL DEL BINGO
 ========================= */
 
 function finalizarBingo() {
 
-    clearTimeout(
-        temporizador
-    );
+    jugando = false;
+
+    clearTimeout(temporizador);
+    temporizador = null;
+
+    if (intervaloAnimacion !== null) {
+        clearInterval(intervaloAnimacion);
+        intervaloAnimacion = null;
+    }
+
+    speechSynthesis.cancel();
 
     document
         .getElementById("numeroActual")
-        .textContent =
-        "🎉";
+        .textContent = "🎉";
 
     document
         .getElementById("numeroTexto")
-        .textContent =
-        "¡BINGO!";
+        .textContent = "¡BINGO!";
 
     document
         .getElementById("contador")
@@ -515,32 +514,28 @@ function finalizarBingo() {
 
 
 /* =========================
-   INICIAR
+   INICIAR BINGO
 ========================= */
 
 function iniciarBingo() {
+
     clearTimeout(temporizador);
+    temporizador = null;
+
+    if (intervaloAnimacion !== null) {
+        clearInterval(intervaloAnimacion);
+        intervaloAnimacion = null;
+    }
 
     crearNumeros();
+
     pausado = false;
+    jugando = true;
 
+    // Primer número inmediatamente
     sacarNumero();
-
-    programarSiguienteNumero();
 }
 
-function programarSiguienteNumero() {
-    clearTimeout(temporizador);
-
-    if (pausado) return;
-
-    temporizador = setTimeout(() => {
-        if (!pausado) {
-            sacarNumero();
-            programarSiguienteNumero();
-        }
-    }, tiempoEntreNumeros);
-}
 
 /* =========================
    ARRANCAR APP
@@ -555,26 +550,40 @@ crearTablero();
    PANTALLA DE INICIO
 ========================= */
 
-document.getElementById("empezar").addEventListener("click", () => {
+document
+    .getElementById("empezar")
+    .addEventListener("click", function () {
 
-    pantallaInicio.classList.add("oculto");
-    juego.classList.remove("oculto");
-    juego.classList.add("entradaJuego");
+        const pantallaInicio =
+            document.getElementById("pantallaInicio");
 
-    // Activar la voz directamente desde el toque del usuario
-    if ("speechSynthesis" in window) {
-        speechSynthesis.cancel();
+        const juego =
+            document.getElementById("juego");
 
-        const mensajeInicial = new SpeechSynthesisUtterance("Bingo");
-        mensajeInicial.lang = "es-ES";
-        mensajeInicial.rate = 0.8;
-        mensajeInicial.volume = 0;
+        pantallaInicio.classList.add("oculto");
 
-        speechSynthesis.speak(mensajeInicial);
-    }
+        juego.classList.remove("oculto");
 
-    iniciarBingo();
-});
+        juego.classList.add("entradaJuego");
+
+        // Inicializar voz desde el toque del usuario
+        prepararVoz();
+
+        if ("speechSynthesis" in window) {
+
+            const mensajeInicial =
+                new SpeechSynthesisUtterance("Bingo");
+
+            mensajeInicial.lang = "es-ES";
+            mensajeInicial.rate = 0.8;
+            mensajeInicial.volume = 0;
+
+            speechSynthesis.speak(mensajeInicial);
+        }
+
+        iniciarBingo();
+    });
+
 
 /* =========================
    BOTÓN DE VOZ
@@ -582,34 +591,26 @@ document.getElementById("empezar").addEventListener("click", () => {
 
 document
     .getElementById("voz")
-    .addEventListener(
-        "click",
-        function () {
+    .addEventListener("click", function () {
 
-            vozActivada =
-                !vozActivada;
+        vozActivada = !vozActivada;
 
-            if (vozActivada) {
+        if (vozActivada) {
 
-                this.textContent = "🔊";
+            this.textContent = "🔊";
 
-                this.classList.remove(
-                    "vozOff"
-                );
+            this.classList.remove("vozOff");
 
-            } else {
+        } else {
 
-                this.textContent = "🔇";
+            this.textContent = "🔇";
 
-                this.classList.add(
-                    "vozOff"
-                );
+            this.classList.add("vozOff");
 
-                speechSynthesis.cancel();
-            }
-
+            speechSynthesis.cancel();
         }
-    );
+
+    });
 
 
 /* =========================
@@ -618,35 +619,30 @@ document
 
 document
     .getElementById("volverInicio")
-    .addEventListener(
-        "click",
-        function () {
+    .addEventListener("click", function () {
 
-            clearTimeout(
-                temporizador
-            );
+        clearTimeout(temporizador);
+        temporizador = null;
 
-            pausado = true;
-
-            const juego =
-                document.getElementById(
-                    "juego"
-                );
-
-            const pantallaInicio =
-                document.getElementById(
-                    "pantallaInicio"
-                );
-
-            juego.classList.add(
-                "oculto"
-            );
-
-            pantallaInicio.classList.remove(
-                "oculto"
-            );
-
-            speechSynthesis.cancel();
-
+        if (intervaloAnimacion !== null) {
+            clearInterval(intervaloAnimacion);
+            intervaloAnimacion = null;
         }
-    );
+
+        jugando = false;
+        pausado = true;
+
+        speechSynthesis.cancel();
+
+        const juego =
+            document.getElementById("juego");
+
+        const pantallaInicio =
+            document.getElementById("pantallaInicio");
+
+        juego.classList.add("oculto");
+
+        pantallaInicio.classList.remove("oculto");
+
+    });
+```
